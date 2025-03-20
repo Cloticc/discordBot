@@ -50,7 +50,8 @@ pip install -r requirements.txt
 ```env
 DISCORD_TOKEN=your_bot_token_here
 BOT_PREFIX=!
-APPLICATION_ID=your_application_id
+APPLICATION_ID=your_application_id_here
+PUBLIC_KEY=your_public_key_here
 SERVER_ID=your_server_id
 ```
 
@@ -58,7 +59,9 @@ SERVER_ID=your_server_id
 - Go to the [Discord Developer Portal](https://discord.com/developers/applications)
 - Select your application
 - Go to the "Bot" section
+- Copy your Application ID and Public Key
 - Enable the following Privileged Gateway Intents:
+  - PRESENCE INTENT
   - SERVER MEMBERS INTENT
   - MESSAGE CONTENT INTENT
 
@@ -121,18 +124,19 @@ Available categories:
 ```
 discordBot/
 ├── src/
-│   ├── main.py              # Main bot file
+│   ├── main.py              # Main bot file and startup logic
 │   ├── commands/
-│   │   ├── events.py        # Event handlers
-│   │   └── setup.py         # Setup commands
+│   │   ├── events.py        # Event handlers (reactions, joins)
+│   │   └── setup.py         # Role setup and management commands
 │   ├── config/
-│   │   └── config.py        # Configuration settings
+│   │   └── config.py        # Role definitions and bot settings
 │   ├── handlers/
-│   │   └── role_handler.py  # Role management logic
+│   │   └── role_handler.py  # Core role management logic
 │   └── utils/
-│       └── role_utils.py    # Utility functions
+│       └── role_utils.py    # Helper functions for role operations
 ├── requirements.txt         # Python dependencies
-└── .env                    # Environment variables
+├── .env                    # Environment variables (private)
+└── .env.example           # Environment variable template
 ```
 
 ## Customization
