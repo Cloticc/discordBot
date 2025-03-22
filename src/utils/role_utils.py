@@ -32,7 +32,7 @@ async def batch_process_roles(
         chunk = role_names[i:i + chunk_size]
 
         # Create roles in this chunk
-        for role_name in chunk:
+        for role_name in chunk: 
             existing_role = discord.utils.get(guild.roles, name=role_name)
             if existing_role:
                 created_roles.append(existing_role)
