@@ -8,6 +8,18 @@ import discord
 from discord.ext import commands
 import config.config as config
 from handlers.role_handler import RoleHandler
+import logging
+import datetime
+
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler('bot.log')
+    ]
+)
 
 class RoleManagementBot(commands.Bot):
     """
@@ -28,9 +40,11 @@ class RoleManagementBot(commands.Bot):
             )
 
             self.role_handler = RoleHandler(self)
+            self.last_reconnect_time = None
+            self.reconnect_attempts = 0
 
         except Exception as e:
-            print("Error initializing bot:", str(e))
+            logging.error("Error initializing bot: %s", str(e))
             raise
 
     async def setup_hook(self):
@@ -42,17 +56,19 @@ class RoleManagementBot(commands.Bot):
             for filename in os.listdir('./src/commands'):
                 if filename.endswith('.py'):
                     await self.load_extension(f'commands.{filename[:-3]}')
-                    print(f'Loaded command module: {filename[:-3]}')
+                    logging.info('Loaded command module: %s', filename[:-3])
         except Exception as e:
-            print(f"Error loading extensions: {e}")
+            logging.error("Error loading extensions: %s", str(e))
             raise
 
     async def on_ready(self):
         """
         Called when the bot is ready and connected to Discord
         """
-        print(f'{self.user} has connected to Discord!')
-        print(f'Bot is active in {len(self.guilds)} servers.')
+        self.last_reconnect_time = datetime.datetime.now()
+        self.reconnect_attempts = 0
+        logging.info(f'{self.user} has connected to Discord!')
+        logging.info(f'Bot is active in {len(self.guilds)} servers.')
 
         # Set bot status
         try:
@@ -62,19 +78,32 @@ class RoleManagementBot(commands.Bot):
                     name="for role reactions"
                 )
             )
-            
+
             # Auto-scan for role messages
-            print("Scanning for existing role messages...")
+            logging.info("Scanning for existing role messages...")
             results = await self.role_handler.auto_scan_all_guilds()
-            
+
             total_reconnected = sum(results.values())
             if (total_reconnected > 0):
-                print(f"✅ Successfully reconnected {total_reconnected} role messages across {len(results)} servers!")
+                logging.info(f"✅ Successfully reconnected {total_reconnected} role messages across {len(results)} servers!")
             else:
-                print("No existing role messages found to reconnect.")
-                
+                logging.info("No existing role messages found to reconnect.")
+
         except Exception as e:
-            print(f"Error during startup: {e}")
+            logging.error(f"Error during startup: {e}")
+
+    async def on_connect(self):
+        """Called when the bot connects to Discord"""
+        logging.info("Bot connected to Discord!")
+
+    async def on_disconnect(self):
+        """Called when the bot disconnects from Discord"""
+        logging.warning("Bot disconnected from Discord. Will attempt to reconnect...")
+        self.reconnect_attempts += 1
+
+    async def on_resumed(self):
+        """Called when the bot resumes a session"""
+        logging.info("Session resumed successfully")
 
 def check_token():
     """
